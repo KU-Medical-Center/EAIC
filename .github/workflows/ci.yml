@@ -29,21 +29,15 @@ jobs:
     needs: validate
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    container:
+      image: code.ornl.gov:4567/research-enablement/containers/acorn:latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Sync to S3 bucket
+      - name: Push to ACORN
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          ACORN_TOKEN: ${{ secrets.ACORN_TOKEN }}
         run: |
-          : "${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID secret is not set}"
-          : "${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY secret is not set}"
-          : "${AWS_DEFAULT_REGION:?AWS_DEFAULT_REGION secret is not set}"
-          : "${S3_BUCKET:?S3_BUCKET secret is not set}"
-          aws s3 sync . "s3://${S3_BUCKET}" \
-            --exclude ".git/*" \
-            --delete
+          : "${ACORN_TOKEN:?ACORN_TOKEN secret is not set}"
+          acorn push
